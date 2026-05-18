@@ -15,6 +15,8 @@ LakeModel_CHIRPS-GLEAM.nc    # Time series of lake surface area (m^2) for Lake A
 
 decadal_parameter_results_GR2M-GLEAM-CHIRPS.nc # Time series of lake model parameters a and b by 10-year time windows.
 
+Bathymetry/  # TIFF bathymetry files for Lakes Afambo, Gemeri, and Abhe, compiled from in situ measurements, Hydroweb lake elevations, and the SRTM digital elevation model.
+
 ├── Hydrological model 
 BV_GRDC__GLEAM_CHIRPS__GR2M_QSIM_1985-2024.txt     # Time series of Awash River streamflow (mm/month) at Tendaho station simulated with GR2M, using CHIRPS v2 precipitation and GLEAM v4.2a evapotranspiration.  
 
