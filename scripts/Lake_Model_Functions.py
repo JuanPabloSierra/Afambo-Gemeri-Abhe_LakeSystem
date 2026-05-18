@@ -182,7 +182,7 @@ def model(bathy_path_abbe,bathy_path_lakeN,df_data,col_debit,col_precip,col_evap
 
         ### --- Mass balance --- ###
 
-        V_abbe= V_abbe - df_model.loc[index,'model_evap_abbe (m3)'] + debit_direct_abbe + debit_lacs_nord - df_model.loc[index,'model_evap_lakeN (m3)'] + df_model.loc[index,'model_cumul precip sur abbe (m3)'] + df_model.loc[index,'model_cumul precip sur lakeN (m3)'] # It is missing the rainfall over northern lakes, right?
+        V_abbe= V_abbe - df_model.loc[index,'model_evap_abbe (m3)'] + debit_direct_abbe + debit_lacs_nord - df_model.loc[index,'model_evap_lakeN (m3)'] + df_model.loc[index,'model_cumul precip sur abbe (m3)'] + df_model.loc[index,'model_cumul precip sur lakeN (m3)'] 
         V_lakeN= V_lakeN - df_model.loc[index,'model_evap_lakeN (m3)'] + debit_lacs_nord + df_model.loc[index,'model_cumul precip sur lakeN (m3)']
 
         if additional_inputs_abbe:
