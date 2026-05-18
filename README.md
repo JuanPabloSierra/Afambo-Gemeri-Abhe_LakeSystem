@@ -5,6 +5,7 @@ Repository containing scripts and data related to hydroclimatic variability in t
 ## Repository structure
 
 ├── data/              # Lake model output and processed datasets
+├── data/SatelliteImag/              # Contains time series of lake surface (km**2) area for Lakes Afambo, Gemeri, and Abhe, derived from Landsat 8–9 satellite imagery and the Global Surface Water Database, and corrected using the methodology of Mullen et al. (2021).
 ├── scripts/           # Python scripts
 
 ## Data
