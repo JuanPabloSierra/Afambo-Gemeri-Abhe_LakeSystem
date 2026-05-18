@@ -1,5 +1,5 @@
 #### --- Script for running the model in the period 1985-2024 ---- ####
-
+# Written by Juan P. Sierra based on the original code by P. Saara Ngom 2025
 ### -- Libraries -- ###
 
 import pickle
@@ -12,8 +12,7 @@ from scipy.interpolate import interp1d
 import rasterio
 from matplotlib.lines import Line2D
 from datetime import datetime
-#from Lake_Model_Calibration import remplissage_lac, relation_volume_en_surface, model
-from Lake_Model_DynParam import remplissage_lac, relation_volume_en_surface, model, relation_surface_en_volume
+from Lake_Model_Functions import remplissage_lac, relation_volume_en_surface, model, relation_surface_en_volume
 import seaborn as sns
 import os
 import matplotlib.cm as cm
@@ -82,7 +81,6 @@ grdc1["Qm3_total_filled"] = q_filled
 ## -- Streamflow from GR2M -- ##
 
 data_debit = pd.read_csv(
-#    "/scratchx/jpsierra/NILAFAR/Lake_Model/BV_GRDC__ERA_CHIRPS__GR2M_QSIM_1985-2024.txt",
     "/scratchx/jpsierra/NILAFAR/Lake_Model/BV_GRDC__GLEAM_CHIRPS__GR2M_QSIM_1985-2024.txt",
     sep=";",
     index_col=0,
@@ -98,12 +96,12 @@ data_debit.columns=["Q_TENDAHO (m3)"]
 
 # -- Increasing above percentile 90 values -- #
 
-p90 = data_debit['Q_TENDAHO (m3)'].quantile(0.95)
+p90 = data_debit['Q_TENDAHO (m3)'].quantile(0.90)
 mask_p90 = data_debit['Q_TENDAHO (m3)'] > p90
 indices_above_p90 = data_debit.index[mask_p90]
 
 data_debitp90 = data_debit.copy()
-data_debitp90.loc[mask_p90, 'Q_TENDAHO (m3)'] *= 1.8
+data_debitp90.loc[mask_p90, 'Q_TENDAHO (m3)'] *= 2
 
 ## Zhao lakes ##
 
@@ -172,18 +170,7 @@ df_interp =df_interp.sort_index().interpolate(method='time') #interpol linéaire
 df_interp.rename(columns={"L_abhe - Water Surface Elevation - values(m)":"h water level (m)"},inplace=True)
 data_h_level= df_interp[df_interp.index.day == 1] #pour séléectionner uniquement les valeurs de début du mois
 
-## -- Precipitation from MSWX and MSWEP-- ##
-
-data_pluie_MSWX= pd.read_csv(r"/scratchx/jpsierra/NILAFAR/Lake_Model/BV_LAC_Pm_MSWX_1979-2025.txt",sep=";",index_col=0,header=0)
-data_pluie_MSWX.index=pd.to_datetime(data_pluie_MSWX.index,format="%Y-%m-%d")
-data_pluie_MSWX_mois=data_pluie_MSWX.resample("MS").sum() #MS pour que l'index correspondent au début de chaque mois
-data_pluie_MSWX_mois=data_pluie_MSWX_mois.rename(columns={'BV_Abbe': 'Lac_Abbe'}) #c'est en réalité les pluie sur le Lac Abbe et non sur le Bassin versant du lac
-
-data_pluie_MSWEP= pd.read_csv("/scratchx/jpsierra/NILAFAR/Lake_Model/BV_LAC_Pd_MSWEP_1979-2019.txt",sep=";",index_col=0,header=0) #### !!!! Comment: Is this the correct file?
-data_pluie_MSWEP = data_pluie_MSWEP['BV_Abbe'] ### !!! I added this line
-data_pluie_MSWEP.index=pd.to_datetime(data_pluie_MSWEP.index,format="%Y-%m-%d")
-data_pluie_MSWEP_mois=data_pluie_MSWEP.resample("MS").sum()
-data_pluie_MSWEP_mois.head()
+## -- Precipitation from CHIRPSv2-- ##
 
 data_pluie_CHIRPS_mois = xr.open_dataset('/scratchx/jpsierra/NILAFAR/Lake_Model/CHIRPSv2_MonthlyRainfall_Lakes.nc')
 
@@ -192,24 +179,7 @@ data_pluie_CHIRPS_mois_abbe = data_pluie_CHIRPS_mois_abbe.to_series()
 data_pluie_CHIRPS_mois_abbe.name = "BV_Abbe"
 data_pluie_CHIRPS_mois_abbe.index = data_pluie_CHIRPS_mois_abbe.index.to_period("M").start_time
 
-## -- Evaporation data from ERA5 -- ##
-
-data_evap=pd.read_csv("/scratchx/jpsierra/NILAFAR/Lake_Model/BV_LAC_ETPd_ERA5_1980-2019.txt",sep=";",index_col=0,header=0)
-data_evap.index=pd.to_datetime(data_evap.index,format="%Y-%m-%d")
-data_evap.columns=['BV_Gemeri (mm)','BV_Afambo (mm)','BV_Abbe (mm)']
-data_evap['Evap moy (mm)']=data_evap.mean(axis=1)
-data_evap=data_evap.resample("MS").sum()
-data_evap=data_evap*1.2 #correction manuelle pour avoir une moyenne annuelle proche de 2214 mm/an
-
-data_evap2=pd.read_csv("/scratchx/jpsierra/NILAFAR/Lake_Model/BV_LAC_ETPd_ERA5_2020-2024.txt",sep=";",index_col=0,header=0)
-
-data_evap2.index=pd.to_datetime(data_evap2.index,format="%Y-%m-%d")
-data_evap2.columns=['BV_Gemeri (mm)','BV_Afambo (mm)','BV_Abbe (mm)']
-data_evap2['Evap moy (mm)']=data_evap2.mean(axis=1)
-data_evap2=data_evap2.resample("MS").sum()
-data_evap2=data_evap2*1.2 #correction manuelle pour avoir une moyenne annuelle proche de 2214 mm/an
-
-data_evap = pd.concat([data_evap, data_evap2])
+## -- Evaporation data from GLEAMv42a -- ##
 
 data_evap_gleam = xr.open_dataset('/scratchx/jpsierra/NILAFAR/Lake_Model/GLEAM_MonthlyPotentialEvap_Lakes.nc')
 
@@ -251,14 +221,10 @@ for i,date in enumerate(dates_loop):
         surf_nlakes_filled.loc[mask] = surf_nlakes.index[mask].month.map(climatology)
 
     #filtrage temporelle des données
-#    E=data_evap['Evap moy (mm)'][date_debut:date_fin]
         E = data_evap_gleam_abbe[date_debut:date_fin]
-        E=E*fac # FOr ERA we used 1.2
-#    P=data_pluie_MSWX_mois['Lac_Abbe'][date_debut:date_fin]
+        E=E*fac # Scalar factor
         P = data_pluie_CHIRPS_mois_abbe[date_debut:date_fin]
-#    Q=data_debit["Q_TENDAHO (m3)"][date_debut:date_fin]
         Q=data_debitp90["Q_TENDAHO (m3)"][date_debut:date_fin]
-#    Q = corrected_full[date_debut:date_fin]
         Q.index = Q.index.to_period('M').to_timestamp('D')
         S=surf_nlakes_filled + surf_abbe_filled
         S_abbe=surf_abbe_filled
@@ -578,26 +544,5 @@ ax.set_xlim(pd.Timestamp("1985-01-01"), pd.Timestamp("2024-12-31"))
 plt.tight_layout()
 plt.savefig('SurfaceTimeSeries_Abhe.pdf')
 plt.close()
-
-### --- Performance metrics --- ###
-
-abbe_lm = (results_abbe[(k_date, 1.4000000000000004)]['surface_values'] + results_nlakes[(k_date, 1.4000000000000004)]['surface_values'])
-abbe_lm = abbe_lm * 1e-6
-
-obs = data_surf_lac_abbe.loc['1985-01-01':'2024-12-01'].values + data_surf_lac_Gemeri.loc['1985-01-01':'2024-12-01'].values + data_surf_lac_Afambo.loc['1985-01-01':'2024-12-01'].values
-obs = obs[:,0]
-mask = (~np.isnan(abbe_lm)) & (~np.isnan(obs))
-
-sim = abbe_lm[mask]
-obs_valid = obs[mask]
-bias = np.mean(sim - obs_valid)
-rel_bias = 100 * np.sum(sim - obs_valid) / np.sum(obs_valid)
-
-nse = 1 - np.sum((sim - obs_valid)**2) / np.sum((obs_valid - np.mean(obs_valid))**2)
-r = np.corrcoef(sim, obs_valid)[0, 1]
-alpha = np.std(sim) / np.std(obs_valid)
-beta = np.mean(sim) / np.mean(obs_valid)
-
-kge = 1 - np.sqrt((r - 1)**2 + (alpha - 1)**2 + (beta - 1)**2)
 
 
