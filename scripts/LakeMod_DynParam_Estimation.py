@@ -13,8 +13,7 @@ from scipy.interpolate import interp1d
 import rasterio
 from matplotlib.lines import Line2D
 from datetime import datetime
-#from Lake_Model_Calibration import remplissage_lac, relation_volume_en_surface, model
-from Lake_Model_ServeralWatEntries import remplissage_lac, relation_volume_en_surface, model, relation_surface_en_volume
+from Lake_Model_Functions import remplissage_lac, relation_volume_en_surface, model, relation_surface_en_volume
 import seaborn as sns
 import os
 import matplotlib.cm as cm
