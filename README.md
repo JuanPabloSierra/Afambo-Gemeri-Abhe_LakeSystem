@@ -22,6 +22,7 @@ BV_GRDC__GLEAM_CHIRPS__GR2M_QSIM_1985-2024.txt     # Time series of Awash River 
 
 LakeMod_DynParam_Estimation.py  # Script for estimating lake model parameters a and b using 10-year moving time windows.
 Lake_Model_Functions.py    # Script with lake model functions.
+LakeMod_Run_DynPar_CHIRPSGR2MGLEAM_EvapSens.py  # Script for running the lake model using different lake evaporation scalar factors.
 
 ## Author
 Juan Pablo Sierra
